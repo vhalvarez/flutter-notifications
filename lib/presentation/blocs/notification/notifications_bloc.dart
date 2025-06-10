@@ -25,11 +25,12 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
   NotificationsBloc() : super(const NotificationsState()) {
     on<NotificationStatusChanged>(_notificationStatusChanged);
+    on<NotificationReceived>(_onPushMessageReceived);
 
     // Verificar estado de las notificaciones
     _initialStatusCheck();
 
-    //
+    //Listener para notificaciones foreground
     _onForegroundMessage();
   }
 
@@ -45,6 +46,13 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   ) {
     emit(state.copyWith(status: event.status));
     _getFCMToken();
+  }
+
+  void _onPushMessageReceived(
+    NotificationReceived event,
+    Emitter<NotificationsState> emit,
+  ) {
+    emit(state.copyWith(notifications: [event.pushMessage, ...state.notifications]));
   }
 
   void _initialStatusCheck() async {
@@ -79,8 +87,8 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     );
 
     // Add the notification to the state
-    // emit(state.copyWith(notifications: [...state.notifications, notification]));
-    print(notification);
+    add(NotificationReceived(notification));
+    
   }
 
   void _onForegroundMessage() {
